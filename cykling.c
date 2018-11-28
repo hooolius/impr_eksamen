@@ -63,6 +63,7 @@ int prompt_for_function();
 int line_counter(FILE *pinput_file, char *search_string);
 void file_parser(FILE *pinput_file, int lines, parsed_line results[]);
 void gen_racers(parsed_line *results);
+void gen_first_and_last_name(char full_name[], char first_name[], char last_name[]);
 void gen_races(FILE *pinput_file, parsed_line results[], racer racers[], int i, int j);
 int gen_points(char position[], int participants);
 int participation_points(char position[]);
@@ -160,9 +161,6 @@ int line_counter(FILE *pinput_file, char *search_string){
 
 
 void gen_racers(parsed_line *results){
-  /*int i, j;
-    char full_name[MAX_FIRST_NAME + MAX_LAST_NAME];
-    char *pfull_name;*/
   int i, j = -1;
   racer racers[500];
   FILE *pinput_file = fopen("cykelloeb", "r");
@@ -175,6 +173,7 @@ void gen_racers(parsed_line *results){
     }
     else{
       j++;
+      gen_first_and_last_name(results[i].racer_name, racers[j].first_name, racers[j].last_name);
       racers[j].age = results[i].racer_age;
       strcpy(racers[j].country, results[i].racer_country);
       strcpy(racers[j].team, results[i].team_name);
@@ -182,33 +181,13 @@ void gen_racers(parsed_line *results){
       gen_races(pinput_file, results, racers, i, j);
     }
   } 
-  /*
-     j = strlen(full_name);
-     while (!islower(full_name[j])){
-     j--;
-     }
-     pfull_name = (char *)full_name + j + 2;
-     strcpy(results[i].racer_last_name, pfull_name);
-     strncpy(results[i].racer_first_name, full_name, j+1);
-
-     printf("first name: %s last name: %s age: %d team: %s country: %s pos: %s time: %s\n",
-     results[i].racer_first_name, results[i].racer_last_name,
-     results[i].racer_age, results[i].team_name, results[i].racer_country,
-     results[i].position, results[i].time);
-     for (i = 0; i < lines; i++){
-     printf("name: %s age: %lf team: %s country: %s pos: %s time: %s\n",
-     results[i].racer_name, 
-     results[i].racer_age, results[i].team_name, results[i].racer_country,
-     results[i].position, results[i].time);
-     }
-     */
-  for (i = 0; i < 100; i++){
-    printf("age: %f team: %s country: %s\n"
+  for (i = 0; i < 500; i++){
+    printf("name: %s %s age: %f team: %s country: %s\n"
         "paris: pos: %s time: %s participants: %d points: %d\n"
         "amstel: pos: %s time: %s participants: %d points: %d\n"
         "fleche: pos: %s time: %s participants: %d points: %d\n"
         "bastogne: pos: %s time: %s participants: %d points: %d\n\n\n",
-        racers[i].age,
+        racers[i].first_name, racers[i].last_name, racers[i].age,
         racers[i].team, racers[i].country,
         racers[i].races[(int)paris].position, racers[i].races[(int)paris].time, racers[i].races[(int)paris].participants, racers[i].races[(int)paris].points,
         racers[i].races[(int)amstel].position, racers[i].races[(int)amstel].time, racers[i].races[(int)amstel].participants, racers[i].races[(int)amstel].points,
@@ -225,38 +204,38 @@ void gen_races(FILE *pinput_file, parsed_line results[],
   int participants_fleche = line_counter(pinput_file, "LaFlecheWallonne");
   int participants_bastogne = line_counter(pinput_file, "LiegeBastogneLiege");
 
-      if (strcmp(results[i].race_name, "ParisRoubaix") == 0){
-        strcpy(racers[j].races[(int)paris].name, results[i].race_name);
-        strcpy(racers[j].races[(int)paris].position, results[i].position);
-        strcpy(racers[j].races[(int)paris].time, results[i].time);
-        racers[j].races[(int)paris].participants = participants_paris;
-        racers[j].races[(int)paris].points = gen_points(racers[j].
-            races[(int)paris].position, participants_paris);
-      }
-      else if (strcmp(results[i].race_name, "AmstelGoldRace") == 0){
-        strcpy(racers[j].races[(int)amstel].name, results[i].race_name);
-        strcpy(racers[j].races[(int)amstel].position, results[i].position);
-        strcpy(racers[j].races[(int)amstel].time, results[i].time);
-        racers[j].races[(int)amstel].participants = participants_amstel;
-        racers[j].races[(int)amstel].points = gen_points(racers[j].
-            races[(int)amstel].position, participants_amstel);
-      }
-      else if (strcmp(results[i].race_name, "LaFlecheWallonne") == 0){
-        strcpy(racers[j].races[(int)fleche].name, results[i].race_name);
-        strcpy(racers[j].races[(int)fleche].position, results[i].position);
-        strcpy(racers[j].races[(int)fleche].time, results[i].time);
-        racers[j].races[(int)fleche].participants = participants_fleche;
-        racers[j].races[(int)fleche].points = gen_points(racers[j].
-            races[(int)fleche].position, participants_fleche);
-      }
-      else if (strcmp(results[i].race_name, "LiegeBastogneLiege") == 0){
-        strcpy(racers[j].races[(int)bastogne].name, results[i].race_name);
-        strcpy(racers[j].races[(int)bastogne].position, results[i].position);
-        strcpy(racers[j].races[(int)bastogne].time, results[i].time);
-        racers[j].races[(int)bastogne].participants = participants_bastogne;
-        racers[j].races[(int)bastogne].points = gen_points(racers[j].
-            races[(int)bastogne].position, participants_bastogne);
-      }
+  if (strcmp(results[i].race_name, "ParisRoubaix") == 0){
+    strcpy(racers[j].races[(int)paris].name, results[i].race_name);
+    strcpy(racers[j].races[(int)paris].position, results[i].position);
+    strcpy(racers[j].races[(int)paris].time, results[i].time);
+    racers[j].races[(int)paris].participants = participants_paris;
+    racers[j].races[(int)paris].points = gen_points(racers[j].
+        races[(int)paris].position, participants_paris);
+  }
+  else if (strcmp(results[i].race_name, "AmstelGoldRace") == 0){
+    strcpy(racers[j].races[(int)amstel].name, results[i].race_name);
+    strcpy(racers[j].races[(int)amstel].position, results[i].position);
+    strcpy(racers[j].races[(int)amstel].time, results[i].time);
+    racers[j].races[(int)amstel].participants = participants_amstel;
+    racers[j].races[(int)amstel].points = gen_points(racers[j].
+        races[(int)amstel].position, participants_amstel);
+  }
+  else if (strcmp(results[i].race_name, "LaFlecheWallonne") == 0){
+    strcpy(racers[j].races[(int)fleche].name, results[i].race_name);
+    strcpy(racers[j].races[(int)fleche].position, results[i].position);
+    strcpy(racers[j].races[(int)fleche].time, results[i].time);
+    racers[j].races[(int)fleche].participants = participants_fleche;
+    racers[j].races[(int)fleche].points = gen_points(racers[j].
+        races[(int)fleche].position, participants_fleche);
+  }
+  else if (strcmp(results[i].race_name, "LiegeBastogneLiege") == 0){
+    strcpy(racers[j].races[(int)bastogne].name, results[i].race_name);
+    strcpy(racers[j].races[(int)bastogne].position, results[i].position);
+    strcpy(racers[j].races[(int)bastogne].time, results[i].time);
+    racers[j].races[(int)bastogne].participants = participants_bastogne;
+    racers[j].races[(int)bastogne].points = gen_points(racers[j].
+        races[(int)bastogne].position, participants_bastogne);
+  }
 }
 void file_parser(FILE *pinput_file, int lines, parsed_line results[]){
   int i;
@@ -278,6 +257,16 @@ int struct_compare(const void *a, const void *b){
   return strcmp(ia->racer_name, ib->racer_name);
 }
 
+void gen_first_and_last_name(char full_name[], char first_name[], char last_name[]){
+  int j = strlen(full_name);
+  char *pfull_name;
+  while (!islower(full_name[j])){
+    j--;
+  }
+  pfull_name = (char *)full_name + j + 2;
+  strcpy(last_name, pfull_name);
+  strncpy(first_name, full_name, j+1);
+}
 int gen_points(char position[], int participants){
   int points = 0;
   points += participation_points(position);

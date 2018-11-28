@@ -82,18 +82,22 @@ int calc_finished_races(racer racer);
 void print_top10_finishers();
 void calc_top10_finishers();
 void print_paris_amstel_winner();
-void calc_paris_amstel_winner();
+void calc_paris_amstel_winner(FILE *pinput_file, char racer_name[],
+    char time[]);
+int calc_total_time(char time1[], char time2[]);
+int time_compare(const void *a, const void *b);
+void reformat_time(int seconds, char time[]);
 void print_top10_avg_age();
 void calc_top10_avg_age();
 
 int main(int argc, char *argv[]){
   int quit = 0;
   if (print_or_prompt(argc, argv)){
-       print_italians_over30();
-       print_finished_danes();
-       print_top10_finishers();
-       /*
-       result_paris_amstel();
+    print_italians_over30();
+    print_finished_danes();
+    print_top10_finishers();
+    print_paris_amstel_winner();
+    /*
        result_top10_avg_age(); */
   }
   else{
@@ -109,7 +113,7 @@ int main(int argc, char *argv[]){
           print_top10_finishers();
           break;
         case 4:
-          /* result_paris_amstel(); */
+          print_paris_amstel_winner();
           break;
         case 5:
           /* result_top10_avg_age(); */
@@ -380,13 +384,14 @@ void print_finished_danes(){
   while (strcmp(result[i].country, "DEN") == 0){ 
     finished_races = calc_finished_races(result[i]);
     if (finished_races > 0){
-    printf("%s %s, age %.0f from %s and team %s finished %d races.",
-        result[i].first_name, result[i].last_name, result[i].age,
-        result[i].country, result[i].team, finished_races);
-    printf("\n");
+      printf("%s %s, age %.0f from %s and team %s finished %d races.",
+          result[i].first_name, result[i].last_name, result[i].age,
+          result[i].country, result[i].team, finished_races);
+      printf("\n");
     }
     i++;
   }
+  printf("\n");
   return;
 }
 
@@ -430,7 +435,7 @@ void print_top10_finishers(){
         i+1, result[i].first_name, result[i].last_name, result[i].age, result[i].country,
         result[i].team, result[i].total_points);
     printf("\n");
-    }
+  }
   return;
 }
 
@@ -459,4 +464,63 @@ int compare_points_and_name(const void *a, const void *b) {
   comp = strcmp(ia->last_name, ib->last_name);
 
   return comp;
+}
+
+void print_paris_amstel_winner(){
+  FILE *pinput_file = fopen("cykelloeb", "r");
+  char racer_name[MAX_FIRST_NAME + MAX_LAST_NAME];
+  char time[MAX_TIME];
+  calc_paris_amstel_winner(pinput_file, racer_name, time);
+  printf("The racer with the lowest combined time in the"
+      " Paris and Amstel races was %s, with a total time of %s \n\n",
+      racer_name, time);
+}
+
+void calc_paris_amstel_winner(FILE *pinput_file, char racer_name[],
+    char time[]){
+  int i, lowest_time_index, lowest_time = 100000000;
+  int lines = line_counter(pinput_file, "\n");
+  int *times = (int*) malloc(lines * sizeof(int));
+  parsed_line *parsed_lines = (parsed_line*) malloc(lines * sizeof(parsed_line));
+  racer *results = (racer*) malloc(lines * sizeof(racer));
+  gen_racers(pinput_file, lines, parsed_lines, results);
+  for (i = 0; i < lines; i++){
+    if (strcmp(results[i].races[(int)paris].time, "- ") != 0 && results[i].races[(int)paris].participated == 1 &&
+        strcmp(results[i].races[(int)amstel].time, "- ") != 0 && results[i].races[(int)amstel].participated == 1){
+      times[i] = calc_total_time(results[i].races[(int)paris].time,
+          results[i].races[(int)amstel].time);
+      if (times[i] < lowest_time){
+        lowest_time_index = i;
+        lowest_time = times[i];
+      }
+    }
+  }
+  sprintf(racer_name, "%s %s", results[lowest_time_index].first_name,
+      results[lowest_time_index].last_name);
+  reformat_time(lowest_time, time);
+}
+
+int calc_total_time(char time1[], char time2[]){
+  int hour1, min1, sec1, hour2, min2, sec2;
+  sscanf(time1, "%d:%d:%d", &hour1, &min1, &sec1);
+  sscanf(time2, "%d:%d:%d", &hour2, &min2, &sec2);
+
+  return (sec1 + sec2) + ((min1 + min2) * 60) + ((hour1 + hour2) * 60 * 60);
+}
+
+void reformat_time(int seconds, char time[]){
+  int hours, minutes, res;
+
+  hours = seconds / (60*60);
+  res = seconds % (60*60);
+  minutes = res / 60;
+  res = minutes % 60;
+
+  sprintf(time, "%d:%d:%d", hours, minutes, res);
+}
+
+int time_compare(const void *a, const void *b){ 
+  const int *ia = (const int*)a;
+  const int *ib = (const int*)b;
+  return *ia - *ib;
 }

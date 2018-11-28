@@ -56,6 +56,7 @@ typedef struct racer{
   char country[MAX_SHORTHAND];
   char team[MAX_SHORTHAND];
   race races[RACE_COUNT];
+  int total_points;
 } racer;
 
 /* function prototypes */
@@ -68,9 +69,11 @@ void gen_racers(FILE *pinput_file, int lines, parsed_line *parsed_lines,
 void gen_first_and_last_name(char full_name[], char first_name[], char last_name[]);
 void gen_races(FILE *pinput_file, parsed_line parsed_lines[], racer racers[], int i, int j);
 int gen_points(char position[], int participants);
+int calc_total_points(racer racer);
 int participation_points(char position[]);
 int placement_points(char position[], int participants);
 int struct_compare(const void *a, const void *b);
+int compare_points_and_name(const void *a, const void *b);
 void print_italians_over30();
 void calc_italians_over30();
 void print_finished_danes();
@@ -88,7 +91,8 @@ int main(int argc, char *argv[]){
   if (print_or_prompt(argc, argv)){
        print_italians_over30();
        print_finished_danes();
-      /* result_top10();
+       print_top10_finishers();
+       /*
        result_paris_amstel();
        result_top10_avg_age(); */
   }
@@ -102,7 +106,7 @@ int main(int argc, char *argv[]){
           print_finished_danes();
           break;
         case 3:
-          /* result_top10(); */
+          print_top10_finishers();
           break;
         case 4:
           /* result_paris_amstel(); */
@@ -173,6 +177,7 @@ void gen_racers(FILE *pinput_file, int lines, parsed_line *parsed_lines,
   for (i = 0; i < lines; i++){
     if (strcmp(parsed_lines[i].racer_name, parsed_lines[i-1].racer_name) == 0){
       gen_races(pinput_file, parsed_lines, racers, i, j);
+      racers[j].total_points = calc_total_points(racers[j]);
     }
     else{
       j++;
@@ -182,6 +187,7 @@ void gen_racers(FILE *pinput_file, int lines, parsed_line *parsed_lines,
       strcpy(racers[j].team, parsed_lines[i].team_name);
 
       gen_races(pinput_file, parsed_lines, racers, i, j);
+      racers[j].total_points = calc_total_points(racers[j]);
     }
   } 
   /*
@@ -313,6 +319,15 @@ int placement_points(char position[], int participants){
   return points;
 }
 
+int calc_total_points(racer racer){
+  int i, total_points = 0;
+  for (i = 0; i < RACE_COUNT; i++)
+    if (racer.races[i].participated == 1){
+      total_points += racer.races[i].points; 
+    }
+  return total_points;
+}
+
 void print_italians_over30(){
   int i = 0, j;
   FILE *pinput_file = fopen("cykelloeb", "r");
@@ -390,6 +405,7 @@ void find_finished_danes(FILE *pinput_file, racer result[]){
   }
   return;
 }
+
 int calc_finished_races(racer racer){
   int races = 0, i;
   for (i = 0; i < RACE_COUNT; i++){
@@ -399,4 +415,48 @@ int calc_finished_races(racer racer){
     }
   }
   return races;
+}
+
+void print_top10_finishers(){
+  int i = 0;
+  FILE *pinput_file = fopen("cykelloeb", "r");
+  int top10_lines = line_counter(pinput_file, "\n");
+  racer *result = (racer*) malloc(top10_lines * sizeof(racer));
+  calc_top10_finishers(pinput_file, result);
+
+  printf("The top 10 racers with the most total points are: \n");
+  for (i = 0; i < 10; i++){
+    printf("%02d: %s %s, age %0.f from %s and team %s, who had a total of %d points. \n",
+        i+1, result[i].first_name, result[i].last_name, result[i].age, result[i].country,
+        result[i].team, result[i].total_points);
+    printf("\n");
+    }
+  return;
+}
+
+void calc_top10_finishers(FILE *pinput_file, racer result[]){
+  int lines = line_counter(pinput_file, "\n");
+  parsed_line *parsed_lines = (parsed_line*) malloc(lines * sizeof(parsed_line));
+  gen_racers(pinput_file, lines, parsed_lines, result);
+  qsort(result, lines, sizeof(racer), compare_points_and_name);
+
+  return;
+}
+
+int compare_points_and_name(const void *a, const void *b) {
+
+  racer *ia = (racer *)a;
+  racer *ib = (racer *)b;
+
+  int comp =  ib->total_points - ia->total_points;
+
+  if (comp < 0)
+    return -1;
+
+  if (comp > 0)
+    return 1;
+
+  comp = strcmp(ia->last_name, ib->last_name);
+
+  return comp;
 }

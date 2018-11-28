@@ -88,7 +88,7 @@ int calc_total_time(char time1[], char time2[]);
 int time_compare(const void *a, const void *b);
 void reformat_time(int seconds, char time[]);
 void print_top10_avg_age();
-void calc_top10_avg_age();
+double calc_top10_avg_age(FILE *pinput_file);
 
 int main(int argc, char *argv[]){
   int quit = 0;
@@ -97,8 +97,7 @@ int main(int argc, char *argv[]){
     print_finished_danes();
     print_top10_finishers();
     print_paris_amstel_winner();
-    /*
-       result_top10_avg_age(); */
+    print_top10_avg_age();
   }
   else{
     while(!quit){
@@ -116,7 +115,7 @@ int main(int argc, char *argv[]){
           print_paris_amstel_winner();
           break;
         case 5:
-          /* result_top10_avg_age(); */
+          print_top10_avg_age();
           break;
         case -1:
           quit = 1;
@@ -523,4 +522,36 @@ int time_compare(const void *a, const void *b){
   const int *ia = (const int*)a;
   const int *ib = (const int*)b;
   return *ia - *ib;
+}
+
+void print_top10_avg_age(){
+  FILE *pinput_file = fopen("cykelloeb", "r");
+  double average_age;
+  average_age = calc_top10_avg_age(pinput_file);
+  printf("The average age of all top 10 finishers is: %0.2f \n", average_age);
+  return;
+}
+
+double calc_top10_avg_age(FILE *pinput_file){
+  int i, j;
+  int lines = line_counter(pinput_file, "\n");
+  int top10_finish_lines = 10*4;
+  double total_age;
+  int unique_racers = 0;
+  racer *top10_racers = (racer*) malloc(top10_finish_lines * sizeof(racer));
+  racer *racers = (racer*) malloc(lines * sizeof(racer));
+  parsed_line *parsed_lines = (parsed_line*) malloc(lines * sizeof(parsed_line));
+  gen_racers(pinput_file, lines, parsed_lines, racers);
+
+  for (i = 0; i < lines; i++){
+    for (j = 0; j < RACE_COUNT; j++){
+      if (atoi(racers[i].races[j].position) != 0 && atoi(racers[i].races[j].position) <= 10){
+        total_age += racers[i].age;
+        i++;
+        unique_racers++;
+        j=0;
+      }
+    }
+  }
+  return (total_age/unique_racers);
 }

@@ -94,8 +94,12 @@ double calc_top10_avg_age(FILE *pinput_file);
 
 /* The main function handles what function to call*/
 int main(int argc, char *argv[]){
-  FILE *pinput_file = fopen("cykelloeb", "r");
   int quit = 0;
+  FILE *pinput_file = fopen("cykelloeb", "r");
+  if (pinput_file == NULL){
+    printf("Could not open file \n");
+    exit(1);
+  }
   if (print_or_prompt(argc, argv)){
     print_italians_over30(pinput_file);
     print_finished_danes(pinput_file);

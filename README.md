@@ -1,4 +1,6 @@
-# Eksamensopgave i imperitiv programmering, 2018 AAU
+# Løsningsforslag til eksamensopgave i imperitiv programmering, 2018 AAU
+
+## Opgavebeskrivelse
 Hvert forår afvikles der et antal éndags-cykelløb - såkaldte forårsklassikere. I denne opgave gives der data fra fire sådanne cykelløb fra foråret 2017, nemlig Paris Roubaix, Amstel Gold Race, La Fleche Wallonne og Liege Bastogne Liege. Alle data stammer fra UCI (den internationale cykelunion) http://www.uci.ch/road/results/. De hentede data fra UCI er bearbejdet på forskellig vis, så de er egnede som udgangspunkt for denne opgave.
 
 Du skal først indlæse alle løbsdata fra den givne tekstfil til et array af cykelløbsresultater (et array af structs). I dit program skal tekstfilen have navnet "cykelloeb". Hver linje i datafilen repræsenterer ét resultat fra ét cykelløb for én rytter. Formatet af en linje i tekstfilen er:
